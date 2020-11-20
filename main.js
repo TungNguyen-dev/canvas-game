@@ -5,6 +5,9 @@ canvas.width = innerWidth;
 canvas.height = innerHeight;
 
 const scoreEl = document.querySelector('#scoreEl');
+const startGameBtn = document.querySelector('#startGameBtn');
+const modalEl = document.querySelector('#modalEl');
+const bigScoreEl = document.querySelector('#bigScoreEl');
 
 // Create Player
 class Player
@@ -118,10 +121,21 @@ class Particle
     }
 }
 
-const player = new Player(canvas.width / 2, canvas.height / 2, 10, 'white');
-const projectiles = [];
-const enemies = [];
-const particles = [];
+let player = new Player(canvas.width / 2, canvas.height / 2, 10, 'white');
+let projectiles = [];
+let enemies = [];
+let particles = [];
+
+function init()
+{
+    player = new Player(canvas.width / 2, canvas.height / 2, 10, 'white');
+    projectiles = [];
+    enemies = [];
+    particles = [];
+    score = 0;
+    scoreEl.innerHTML = score;
+    bigScoreEl.innerHTML = score;
+}
 
 // Create Enemies
 function spawnEnemies()
@@ -157,6 +171,8 @@ function spawnEnemies()
     }, 1000);
 };
 
+let animationID;
+let score = 0;
 function animate()
 {
     // Chuyen dong 60FPS
@@ -208,6 +224,8 @@ function animate()
         if(dist - enemy.radius - player.radius < 1)
         {
             cancelAnimationFrame(animationID);
+            modalEl.style.display = 'flex';
+            bigScoreEl.innerHTML = score;
         }
 
         projectiles.forEach((projectile, projectileIndex) =>
@@ -238,17 +256,26 @@ function animate()
 
                 if(enemy.radius - 10 > 5)
                 {
+                    // Increase our score
+                    score += 100;
+                    scoreEl.innerHTML = score;
+
                     gsap.to((enemy),
                     {
                         radius: enemy.radius - 10
                     })
-                    setTimeout(() => 
+
+                    setTimeout(() =>
                     {
                         projectiles.splice(projectileIndex, 1);
                     }, 0);
                 }
                 else
                 {
+                    // Remove From Scene Altogether
+                    score += 250;
+                    scoreEl.innerHTML = score;
+
                     setTimeout(() => 
                     {
                         enemies.splice(index, 1);
@@ -260,17 +287,22 @@ function animate()
     });
 }
 
-animate();
-spawnEnemies();
-
 addEventListener('click', (event) =>
 {
     const angle = Math.atan2(event.clientY - canvas.height / 2, event.clientX - canvas.width / 2);
     const velocity =
     {
-        x: Math.cos(angle) * 5,
-        y: Math.sin(angle) * 5
+        x: Math.cos(angle) * 6,
+        y: Math.sin(angle) * 6
     }
     
     projectiles.push(new Projectile(canvas.width / 2, canvas.height / 2, 5, 'white', velocity));
 });
+
+startGameBtn.addEventListener('click', () =>
+{
+    init();
+    animate();
+    spawnEnemies();
+    modalEl.style.display = 'none';
+})
